@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Hospital Queue</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { font-family: Arial; text-align: center; background: #f5f5f5; margin: 0; }
+    header { background: #007bff; color: white; padding: 1rem; }
+    main { padding: 2rem; }
+    .current-number { font-size: 5rem; margin: 2rem 0; }
+    .controls button { font-size: 1.5rem; padding: 0.5rem 1rem; margin: 0.5rem; cursor: pointer; }
+    .patient-input { margin-top: 2rem; }
+    input { padding: 0.5rem; font-size: 1rem; width: 3rem; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Hospital Queue System</h1>
+  </header>
+  <main>
+    <div class="current-number" id="currentNumber">0</div>
+    <div class="controls">
+      <button id="upBtn">⬆ Next Patient</button>
+    </div>
+
+    <div class="patient-input">
+      <h2>Notify Me Before My Turn</h2>
+      <input type="number" id="myNumber" placeholder="Your Number">
+      <input type="number" id="notifyBefore" placeholder="# Before" value="1">
+      <button id="notifyBtn">Set Notification</button>
+    </div>
+  </main>
+
+  <audio id="alertSound" src="https://www.soundjay.com/button/beep-07.wav"></audio>
+
+  <script>
+    let currentNumber = 0;
+
+    const currentNumberEl = document.getElementById('currentNumber');
+    const upBtn = document.getElementById('upBtn');
+    const myNumberInput = document.getElementById('myNumber');
+    const notifyBeforeInput = document.getElementById('notifyBefore');
+    const notifyBtn = document.getElementById('notifyBtn');
+    const alertSound = document.getElementById('alertSound');
+
+    // Track patient notification
+    let notifyNumber = null;
+    let notifyBefore = 1;
+    let notified = false;
+
+    function updateDisplay() {
+      currentNumberEl.textContent = currentNumber;
+
+      // Check notification
+      if (notifyNumber && !notified && currentNumber >= notifyNumber - notifyBefore) {
+        alertSound.play();
+        alert(`Your turn is coming up! Current number: ${currentNumber}`);
+        notified = true;
+      }
+    }
+
+    upBtn.addEventListener('click', () => {
+      currentNumber++;
+      updateDisplay();
+    });
+
+    notifyBtn.addEventListener('click', () => {
+      notifyNumber = parseInt(myNumberInput.value);
+      notifyBefore = parseInt(notifyBeforeInput.value) || 1;
+      notified = false;
+      alert(`Notification set for number ${notifyNumber}, ${notifyBefore} before.`);
+    });
+
+    // Initial display
+    updateDisplay();
+  </script>
+</body>
+</html>
