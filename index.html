@@ -19,7 +19,7 @@
 <body>
   <header>
     <h1>QueueCare</h1>
-    <p>Keep track of your turn at the hospital</p>
+    <p>Track your turn at the hospital</p>
   </header>
   <main>
     <div class="current-number" id="currentNumber">0</div>
@@ -33,14 +33,16 @@
       <label for="myNumber">Your Number:</label>
       <input type="number" id="myNumber" placeholder="Enter your number">
 
-      <label for="notifyBefore">How many patients before your turn to start notifications:</label>
+      <label for="notifyBefore">Start notifications this many patients before your turn:</label>
       <input type="number" id="notifyBefore" placeholder="e.g., 3" value="1">
 
       <button id="notifyBtn">Set Notifications</button>
     </div>
   </main>
 
-  <audio id="alertSound" src="https://www.soundjay.com/button/beep-07.wav"></audio>
+  <!-- Beep sound -->
+  <audio id="alertSound" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg"></audio>
+  <audio id="finalSound" src="https://actions.google.com/sounds/v1/alarms/digital_watch_alarm_long.ogg"></audio>
 
   <script>
     let currentNumber = 0;
@@ -51,37 +53,50 @@
     const notifyBeforeInput = document.getElementById('notifyBefore');
     const notifyBtn = document.getElementById('notifyBtn');
     const alertSound = document.getElementById('alertSound');
+    const finalSound = document.getElementById('finalSound');
 
     // Track patient notifications
     let notifyNumber = null;
     let notifyBefore = 1;
 
-    function updateDisplay() {
-      currentNumberEl.textContent = currentNumber;
-
-      // Beep at every turn leading up to the patient's number
-   
-
-        if (notifyNumber !== null && currentNumber >= notifyNumber - notifyBefore && currentNumber <= notifyNumber) {
-    alertSound.play();
-
-    // Request permission for notifications
-    if (Notification.permission === "granted") {
-        new Notification("QueueCare", {
-            body: `Your turn is coming up! Current number: ${currentNumber}`,
+    function showNotification(title, message) {
+      if (Notification.permission === "granted") {
+        new Notification(title, { body: message });
+      } else if (Notification.permission !== "denied") {
+        Notification.requestPermission().then(permission => {
+          if (permission === "granted") {
+            new Notification(title, { body: message });
+          }
         });
-    } else if (Notification.permission !== "denied") {
-        Notification.requestPermission();
-    }
-}
       }
     }
 
+    function updateDisplay() {
+      currentNumberEl.textContent = currentNumber;
+
+      if (notifyNumber !== null) {
+        // Start notifications leading up to the number
+        if (currentNumber >= notifyNumber - notifyBefore && currentNumber < notifyNumber) {
+          alertSound.play();
+          showNotification("QueueCare", `Your turn is coming soon! Current number: ${currentNumber}`);
+        }
+
+        // When your number is called
+        if (currentNumber === notifyNumber) {
+          finalSound.play();
+          showNotification("QueueCare", `It's your turn! Number: ${currentNumber}`);
+          alert(`It's your turn! Number: ${currentNumber}`);
+        }
+      }
+    }
+
+    // Increment number (doctor/staff)
     upBtn.addEventListener('click', () => {
       currentNumber++;
       updateDisplay();
     });
 
+    // Set patient notifications
     notifyBtn.addEventListener('click', () => {
       const enteredNumber = parseInt(myNumberInput.value);
       const beforeNumber = parseInt(notifyBeforeInput.value) || 1;
@@ -93,14 +108,12 @@
 
       notifyNumber = enteredNumber;
       notifyBefore = beforeNumber;
+
       alert(`Notifications set for numbers ${notifyNumber - notifyBefore} to ${notifyNumber}`);
     });
 
     // Initial display
     updateDisplay();
-  </script>
-</body>
-</html>
   </script>
 </body>
 </html>
